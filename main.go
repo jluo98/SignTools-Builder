@@ -88,8 +88,13 @@ func mainE() error {
 				cmd := exec.CommandContext(ctx, filepath.Join(workDir, *entrypoint))
 				cmd.Dir = workDir
 				cmd.Env = signEnv
-				if output, err := cmd.CombinedOutput(); err != nil {
-					return errors.WithMessage(errors.WithMessage(errors.New(string(output)), err.Error()), "sign script")
+				
+				// Stream live directly to the parent process stdout/stderr
+				cmd.Stdout = os.Stdout
+				cmd.Stderr = os.Stderr
+				
+				if err := cmd.Run(); err != nil {
+					return errors.WithMessage(err, "sign script")
 				}
 				return nil
 			}()
